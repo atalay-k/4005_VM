@@ -1,0 +1,312 @@
+---
+title: "Yükseköğretimde Puanların Ötesinde Etkin Raporlama"
+subtitle: "Verilerle Oynuyorum"
+author: "Doc.Dr. Kubra Atalay Kabasakal"
+output:
+  html_document:
+    css: slides-style.css
+    theme: cerulean
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    code-fold: true
+    code-link: true
+    code-tools: true
+---
+
+## Aritmetik ortalama
+
+bir veri kümesindeki tüm değerlerin toplamının değer sayısına bölünmesini temsil eden bir merkezi eğilim ölçüsüdür. Genellikle veri kümesinin merkezini veya tipik değerini temsil eden tek bir değer sağlayarak bir veri kümesini özetlemek için kullanılır.
+
+$$
+\text{Ortalama} = \frac{x_1 + x_2 + \cdots + x_n}{n} = \frac{\sum_{i=1}^{n} x_i}{n}
+$$
+
+### Özellikleri
+
+-   Tüm değerleri toplayıp değer sayısına bölerek hesaplamak kolaydır.
+
+-   Aritmetik ortalama, veri kümesindeki her değeri dikkate alır ve bu da onu kapsamlı bir ölçü haline getirir.
+
+-   Başlıca dezavantajlarından biri, sonucu çarpıtabilecek aykırı değerlerden (aşırı yüksek veya düşük değerler) büyük ölçüde etkilenebilmesidir.
+
+-   Aritmetik ortalama, bir aralık veya oran ölçeğinde ölçülen veriler için uygundur (sayıların aralarında anlamlı mesafeler olduğu ve gerçek bir sıfırın bulunduğu durumlarda).
+
+-   Simetrik bir dağılımda ortalama merkezdedir ve dağılımın denge noktası olarak düşünülebilir.
+
+-   Belirli bir veri kümesi için yalnızca bir aritmetik ortalama vardır, bu da onu benzersiz bir merkezi eğilim ölçüsü haline getirir.
+
+-   Veri noktalarının ortalamadan sapmalarının toplamı her zaman sıfırdır, yani,
+
+$$
+\sum_{i=1}^{n} (x_i - \tilde{x}) = 0
+$$
+
+Aritmetik ortalama genellikle varyans ve standart sapma gibi diğer istatistiksel hesaplamalarda kullanılır.
+
+| Sayı | Ortalama | Fark |
+|------------------------|------------------------|------------------------|
+| 3 | 6 | -3 |
+| 6 | 6 | 0 |
+| 7 | 6 | 1 |
+| 8 | 6 | 2 |
+| $$\sum_{i=1}^{n} x_i = 24$$ |  | $$\sum_{i=1}^{n} x_i - \tilde{x} = 0$$ |
+
+## Standart Sapma
+
+Bir veri kümesindeki dağılım miktarının bir ölçüsüdür. Bireysel veri noktalarının veri kümesinin ortalamasından ne kadar saptığını gösterir. Daha küçük bir standart sapma, veri noktalarının ortalamaya daha yakın olduğu anlamına gelirken, daha büyük bir standart sapma daha fazla yayılma olduğunu gösterir.
+
+Evren için:
+
+$$
+\sigma = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (x_i - \mu)^2}
+$$
+
+Örneklem için:
+
+$$
+s = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2}
+$$
+
+## Standart Sapmanın Özellikleri
+
+-   Veri noktalarının ortalamaya göre yayılımını ölçer. Daha yüksek bir standart sapma, verilerde daha fazla değişkenlik olduğu anlamına gelir.
+
+-   Standart sapma orijinal verilerle aynı birimlere sahiptir, bu da bağlam içinde yorumlanmasını kolaylaştırır.
+
+-   Ortalama gibi, standart sapma da uç değerlerden etkilenir, çünkü aykırı değerler yayılımı artırabilir.
+
+-   Standart sapma, karesel sapmalara dayandığı için her zaman pozitiftir.
+
+-   Aralık veya oran ölçeklerinde ölçülen veriler için uygundur.
+
+-   Standart sapma, varyansın kareköküdür ve dağılımın bir başka ölçüsüdür.
+
+-   İstatistik, finans ve diğer alanlarda veri değişkenliğini analiz etmek ve güven aralıkları oluşturmak için yaygın olarak kullanılır.
+
+### Yorum
+
+-   Düşük standart sapma veri noktalarının ortalamaya yakın olduğunu gösterir.
+
+-   Yüksek standart sapma veri noktalarının daha geniş bir değer aralığına yayıldığını gösterir.
+
+## Simülasyon Araçları
+
+-   [**Normal Dağılım Simülasyonu1:** ](https://buluttevfik.shinyapps.io/normdv2/)
+
+-   [**Normal Dağılım Simülasyonu2:**](https://www.statcrunch.com/applets/type2&normal)
+
+-   [**Ortalama ve Ortanca**](https://www.statcrunch.com/applets/type1&meanmedian)
+
+-   [**Betimsel Istatistikler**](https://phet.colorado.edu/sims/html/center-and-variability/latest/center-and-variability_all.html)
+
+```{r include = FALSE}
+library(shiny)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Function to generate normal distribution
+generate_normal <- function(mean, sd, n) {
+  scores <- rnorm(n, mean, sd)
+  scores <- pmin(pmax(round(scores), 0), 100)  # Clamp between 0 and 100
+  return(scores)
+}
+
+# Function to generate skewed distribution
+generate_skewed <- function(mean, sd, skewness, n) {
+  delta <- skewness / sqrt(1 + skewness^2)
+  scale <- sd / sqrt(1 - 2 * delta^2 / pi)
+  location <- mean - scale * delta * sqrt(2 / pi)
+  
+  scores <- rnorm(n)
+  scores <- location + scale * (scores + delta * abs(scores))
+  scores <- pmin(pmax(round(scores), 0), 100)  # Clamp between 0 and 100
+  return(scores)
+}
+
+# UI
+ui <- fluidPage(
+  titlePanel("Class Score Distribution Simulator"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("mean", "Mean:", min = 0, max = 100, value = 70),
+      sliderInput("sd", "Standard Deviation:", min = 1, max = 30, value = 10),
+      sliderInput("skewness", "Skewness:", min = -1, max = 1, value = 0, step = 0.1),
+      sliderInput("sample_size", "Sample Size:", min = 100, max = 10000, value = 1000, step = 100),
+      actionButton("generate", "Generate Distributions")
+    ),
+    
+    mainPanel(
+      plotOutput("distributionPlot"),
+      verbatimTextOutput("summary")
+    )
+  )
+)
+
+# Server
+server <- function(input, output) {
+  
+  distributions <- reactiveVal(NULL)
+  
+  observeEvent(input$generate, {
+    normal_scores <- generate_normal(input$mean, input$sd, input$sample_size)
+    skewed_scores <- generate_skewed(input$mean, input$sd, input$skewness, input$sample_size)
+    
+    distributions(
+      data.frame(
+        Score = c(normal_scores, skewed_scores),
+        Distribution = c(rep("Normal", input$sample_size), rep("Skewed", input$sample_size))
+      )
+    )
+  })
+  
+  output$distributionPlot <- renderPlot({
+    req(distributions())
+    
+    ggplot(distributions(), aes(x = Score, fill = Distribution)) +
+      geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+      scale_fill_manual(values = c("Normal" = "#4BC0C0", "Skewed" = "#FF6384")) +
+      labs(title = "Score Distributions",
+           x = "Score",
+           y = "Frequency") +
+      theme_minimal() +
+      theme(legend.position = "top")
+  })
+  
+  output$summary <- renderPrint({
+    req(distributions())
+    
+    distributions() %>%
+      group_by(Distribution) %>%
+      summarise(
+        Mean = mean(Score),
+        SD = sd(Score),
+        Median = median(Score),
+        Min = min(Score),
+        Max = max(Score)
+      ) %>%
+      knitr::kable(digits = 2)
+  })
+}
+
+# Run the app
+shinyApp(ui = ui, server = server)
+```
+
+```{r include = FALSE}
+library(shiny)
+library(plotly)
+library(dplyr)
+
+# Function to generate normal distribution
+generate_normal <- function(mean, sd, n) {
+  scores <- rnorm(n, mean, sd)
+  scores <- pmin(pmax(round(scores), 0), 100)  # Clamp between 0 and 100
+  return(scores)
+}
+
+# Function to calculate descriptive statistics
+calc_stats <- function(x) {
+  c(Mean = mean(x),
+    SD = sd(x),
+    Median = median(x),
+    Min = min(x),
+    Max = max(x))
+}
+
+# UI
+ui <- fluidPage(
+  titlePanel("Interactive Dual Distribution Comparator"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      h4("Distribution 1 (Blue)"),
+      sliderInput("mean1", "Mean:", min = 0, max = 100, value = 70),
+      sliderInput("sd1", "Standard Deviation:", min = 1, max = 30, value = 10),
+      
+      h4("Distribution 2 (Red)"),
+      sliderInput("mean2", "Mean:", min = 0, max = 100, value = 70),
+      sliderInput("sd2", "Standard Deviation:", min = 1, max = 30, value = 15),
+      
+      sliderInput("sample_size", "Sample Size:", min = 100, max = 10000, value = 1000, step = 100),
+      actionButton("generate", "Generate Distributions")
+    ),
+    
+    mainPanel(
+      plotlyOutput("distributionPlot", height = "600px")
+    )
+  )
+)
+
+# Server
+server <- function(input, output) {
+  
+  distributions <- reactiveVal(NULL)
+  
+  observeEvent(input$generate, {
+    scores1 <- generate_normal(input$mean1, input$sd1, input$sample_size)
+    scores2 <- generate_normal(input$mean2, input$sd2, input$sample_size)
+    
+    distributions(list(
+      Distribution1 = scores1,
+      Distribution2 = scores2
+    ))
+  })
+  
+  output$distributionPlot <- renderPlotly({
+    req(distributions())
+    
+    dist_data <- distributions()
+    
+    # Calculate stats
+    stats1 <- calc_stats(dist_data$Distribution1)
+    stats2 <- calc_stats(dist_data$Distribution2)
+    
+    # Create plotly object
+    p <- plot_ly(alpha = 0.6) %>%
+      add_histogram(x = dist_data$Distribution1, name = "Distribution 1", marker = list(color = "blue")) %>%
+      add_histogram(x = dist_data$Distribution2, name = "Distribution 2", marker = list(color = "red")) %>%
+      layout(
+        barmode = "overlay",
+        title = "Score Distributions Comparison",
+        xaxis = list(title = "Score"),
+        yaxis = list(title = "Frequency"),
+        showlegend = TRUE
+      )
+    
+    # Add stats annotations
+    stats_text1 <- paste(
+      "Distribution 1 (Blue):<br>",
+      paste(names(stats1), round(stats1, 2), collapse = "<br>"),
+      sep = ""
+    )
+    stats_text2 <- paste(
+      "<br><br>Distribution 2 (Red):<br>",
+      paste(names(stats2), round(stats2, 2), collapse = "<br>"),
+      sep = ""
+    )
+    
+    p <- p %>% add_annotations(
+      x = 1,
+      y = 1,
+      text = paste(stats_text1, stats_text2),
+      showarrow = FALSE,
+      xref = "paper",
+      yref = "paper",
+      xanchor = "right",
+      yanchor = "top",
+      font = list(size = 12),
+      align = "right"
+    )
+    
+    p
+  })
+}
+
+# Run the app
+shinyApp(ui = ui, server = server)
+```
